@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>下班倒计时 | 活力时刻</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // 高饱和度色彩方案
+            primary: '#FF3366',      // 亮粉色 - 主色调
+            secondary: '#00CCFF',    // 亮蓝色 - 辅助色
+            accent: '#FFCC00',       // 亮黄色 - 强调色
+            dark: '#333333',         // 深灰色 - 文本色
+            light: '#F8F8F8',        // 浅灰色 - 背景色
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .countdown-pulse {
+        animation: pulse 2s infinite;
+      }
+      .float-animation {
+        animation: float 3s ease-in-out infinite;
+      }
+      .bounce-in {
+        animation: bounceIn 0.5s ease-out;
+      }
+      .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: transparent;
+        animation: confetti-fall 3s ease-in-out forwards, confetti-sway 2s ease-in-out infinite;
+      }
+      .emoji-spin {
+        animation: spin 2s linear infinite;
+      }
+      .text-pulse {
+        animation: textPulse 1.5s infinite;
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @keyframes bounceIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes confetti-fall {
+      0% { top: -10%; }
+      100% { top: 100%; }
+    }
+    
+    @keyframes confetti-sway {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(10px); }
+    }
+    
+    @keyframes textPulse {
+      0% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #FF3366, 0 0 20px #FF3366; }
+      50% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #FFCC00, 0 0 40px #FFCC00; }
+      100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #FF3366, 0 0 20px #FF3366; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen font-inter text-dark antialiased bg-fixed bg-cover bg-center" style="background-image: url('https://picsum.photos/id/10/1920/1080');">
+  <!-- 半透明遮罩层 -->
+  <div class="fixed inset-0 bg-dark/30 z-0"></div>
+  
+  <!-- 页面容器 -->
+  <div class="container mx-auto px-4 py-8 max-w-4xl relative z-10">
+    <!-- 标题区域 -->
+    <header class="text-center mb-8 bounce-in">
+      <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-white mb-2 text-shadow">
+        <i class="fa fa-clock-o mr-2"></i>下班倒计时
+      </h1>
+      <p class="text-lg text-white/90 text-shadow">Written BY Yixi Jia</p>
+    </header>
+    
+    <!-- 倒计时区域 -->
+    <section class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8 card-hover">
+      <div class="flex flex-col items-center">
+        <p class="text-xl text-dark/70 mb-6">距离下班还有</p>
+        
+        <!-- 倒计时显示 -->
+        <div class="grid grid-cols-5 gap-4 mb-8 w-full max-w-md">
+          <div class="bg-primary/20 rounded-xl p-4 text-center">
+            <div id="hours" class="text-4xl md:text-5xl font-bold text-primary countdown-pulse">00</div>
+            <div class="text-sm text-dark/60 mt-2">小时</div>
+          </div>
+          <div class="flex items-center justify-center">
+            <div class="text-4xl md:text-5xl font-bold text-primary/70">
+              :
+            </div>
+          </div>
+          <div class="bg-secondary/20 rounded-xl p-4 text-center">
+            <div id="minutes" class="text-4xl md:text-5xl font-bold text-secondary countdown-pulse">00</div>
+            <div class="text-sm text-dark/60 mt-2">分钟</div>
+          </div>
+          <div class="flex items-center justify-center">
+            <div class="text-4xl md:text-5xl font-bold text-primary/70">
+              :
+            </div>
+          </div>
+          <div class="bg-accent/20 rounded-xl p-4 text-center">
+            <div id="seconds" class="text-4xl md:text-5xl font-bold text-accent countdown-pulse">00</div>
+            <div class="text-sm text-dark/60 mt-2">秒钟</div>
+          </div>
+        </div>
+        
+        <!-- 下班时间设置 -->
+        <div class="w-full max-w-md">
+          <label for="endTime" class="block text-dark/80 mb-3 text-center">
+            设置下班时间
+          </label>
+          <div class="flex gap-3 justify-center">
+            <input 
+              type="time" 
+              id="endTime" 
+              value="18:00" 
+              class="px-4 py-3 rounded-lg border-2 border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all w-full max-w-xs"
+            >
+            <button 
+              id="setTimeBtn" 
+              class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all shadow-md hover:shadow-lg flex items-center"
+            >
+              <i class="fa fa-check mr-2"></i>确认
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 历史记录区域 -->
+    <section class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8 card-hover">
+      <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+        <i class="fa fa-history mr-2"></i>下班记录
+      </h2>
+      <div id="history" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+        <p class="text-dark/50 italic text-center">暂无下班记录</p>
+      </div>
+    </section>
+    
+    <!-- 底部信息 -->
+    <footer class="text-center text-white/80 text-sm">
+      <p>享受工作，期待生活 <i class="fa fa-heart text-accent"></i></p>
+    </footer>
+  </div>
+  
+  <!-- 下班弹窗 -->
+  <div id="celebrationModal" class="fixed inset-0 bg-dark/60 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl p-8 text-center max-w-md w-full mx-4 transform translate-y-10 transition-transform duration-500 shadow-2xl">
+      <!-- 旋转emoji -->
+      <div class="emoji-spin text-6xl mb-4 text-primary">
+        🎉🎊🥳
+      </div>
+      
+      <!-- 脉冲文字 -->
+      <h2 id="celebrationText" class="text-4xl font-bold text-primary mb-6 text-pulse">
+        下班啦！
+      </h2>
+      
+      <!-- 倒计时 -->
+      <p id="celebrationCountdown" class="text-xl text-dark/70 mb-6">
+        庆祝还剩 <span id="countdownSeconds">10</span> 秒
+      </p>
+      
+      <!-- 按钮 -->
+      <button id="closeModalBtn" class="px-8 py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/30 transform hover:-translate-y-1 w-full max-w-xs">
+        知道啦
+      </button>
+    </div>
+  </div>
+  
+  <!-- 音效 -->
+  <audio id="celebrationSound" preload="auto">
+    <source src="https://assets.mixkit.co/sfx/preview/mixkit-cheering-crowd-in-stadium-607.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // 获取DOM元素
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    const endTimeInput = document.getElementById('endTime');
+    const setTimeBtn = document.getElementById('setTimeBtn');
+    const historyEl = document.getElementById('history');
+    const celebrationModal = document.getElementById('celebrationModal');
+    const celebrationText = document.getElementById('celebrationText');
+    const celebrationCountdown = document.getElementById('celebrationCountdown');
+    const countdownSecondsEl = document.getElementById('countdownSeconds');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const celebrationSound = document.getElementById('celebrationSound');
+    
+    // 存储历史记录
+    let history = JSON.parse(localStorage.getItem('下班历史记录')) || [];
+    
+    // 初始化下班时间 (默认18:00)
+    let targetTime = new Date();
+    const targetTimeStr = endTimeInput.value;
+    const [targetHour, targetMinute] = targetTimeStr.split(':').map(Number);
+    targetTime.setHours(targetHour, targetMinute, 0, 0);
+    
+    // 渲染历史记录
+    function renderHistory() {
+      if (history.length === 0) {
+        historyEl.innerHTML = '<p class="text-dark/50 italic text-center">暂无下班记录</p>';
+        return;
+      }
+      
+      historyEl.innerHTML = '';
+      history.forEach((record, index) => {
+        const dateObj = new Date(record);
+        const dateStr = dateObj.toLocaleDateString();
+        const timeStr = dateObj.toLocaleTimeString();
+        
+        const recordEl = document.createElement('div');
+        recordEl.className = `bg-light/80 p-4 rounded-xl shadow-sm ${index % 2 === 0 ? 'bg-primary/5' : 'bg-secondary/5'} flex justify-between items-center`;
+        recordEl.innerHTML = `
+          <span class="font-medium">${dateStr} ${timeStr}</span>
+          <i class="fa fa-trophy text-accent"></i>
+        `;
+        historyEl.appendChild(recordEl);
+      });
+    }
+    
+    // 显示庆祝弹窗
+    function showCelebration() {
+      // 播放音效
+      celebrationSound.play().catch(e => console.log('音效播放失败:', e));
+      
+      // 记录当前时间
+      const now = new Date();
+      history.unshift(now.toISOString());
+      localStorage.setItem('下班历史记录', JSON.stringify(history));
+      renderHistory();
+      
+      // 显示弹窗
+      celebrationModal.classList.remove('opacity-0', 'pointer-events-none');
+      celebrationModal.querySelector('div').classList.remove('translate-y-10');
+      
+      // 添加 confetti 效果
+      addConfetti();
+      
+      // 倒计时
+      let countdown = 10;
+      countdownSecondsEl.textContent = countdown;
+      
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        countdownSecondsEl.textContent = countdown;
+        
+        if (countdown <= 0) {
+          closeCelebration();
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+    }
+    
+    // 关闭庆祝弹窗
+    function closeCelebration() {
+      celebrationModal.classList.add('opacity-0', 'pointer-events-none');
+      celebrationModal.querySelector('div').classList.add('translate-y-10');
+      
+      // 移除 confetti
+      removeConfetti();
+    }
+    
+    // 添加 confetti 效果
+    function addConfetti() {
+      const colors = ['#FF3366', '#00CCFF', '#FFCC00', '#FF6600', '#33FF99'];
+      const container = document.body;
+      const count = 100;
+      
+      for (let i = 0; i < count; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confetti.style.animationDelay = `${Math.random() * 3}s`;
+        confetti.style.width = `${5 + Math.random() * 15}px`;
+        confetti.style.height = `${5 + Math.random() * 15}px`;
+        container.appendChild(confetti);
+        
+        // 10秒后移除confetti
+        setTimeout(() => {
+          confetti.remove();
+        }, 10000);
+      }
+    }
+    
+    // 移除 confetti 效果
+    function removeConfetti() {
+      const confetti = document.querySelectorAll('.confetti');
+      confetti.forEach(c => c.remove());
+    }
+    
+    // 更新倒计时
+    function updateCountdown() {
+      const now = new Date();
+      
+      // 如果目标时间小于当前时间，设置为明天同一时间
+      if (targetTime <= now) {
+        targetTime.setDate(targetTime.getDate() + 1);
+      }
+      
+      const diff = targetTime - now;
+      
+      // 计算时、分、秒
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      // 显示倒计时
+      hoursEl.textContent = hours.toString().padStart(2, '0');
+      minutesEl.textContent = minutes.toString().padStart(2, '0');
+      secondsEl.textContent = seconds.toString().padStart(2, '0');
+      
+      // 如果倒计时结束
+      if (diff <= 0) {
+        showCelebration();
+      }
+    }
+    
+    // 设置下班时间
+    setTimeBtn.addEventListener('click', () => {
+      const timeStr = endTimeInput.value;
+      if (!timeStr) return;
+      
+      const [hour, minute] = timeStr.split(':').map(Number);
+      if (isNaN(hour) || isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        alert('请输入有效的时间格式 (HH:MM)');
+        return;
+      }
+      
+      targetTime = new Date();
+      targetTime.setHours(hour, minute, 0, 0);
+      
+      // 如果设置的时间已经过了今天，设置为明天
+      if (targetTime < new Date()) {
+        targetTime.setDate(targetTime.getDate() + 1);
+      }
+      
+      // 显示成功消息
+      alert(`已设置下班时间为 ${timeStr}`);
+    });
+    
+    // 关闭弹窗按钮
+    closeModalBtn.addEventListener('click', closeCelebration);
+    
+    // 初始化
+    renderHistory();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>
